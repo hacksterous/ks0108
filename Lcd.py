@@ -111,7 +111,7 @@ class Lcd():
         self.rs.high()
         self.en(1)
         self.chp = 0
-        self.row = 0
+        self.row = 1
         self.col = 0
         self.scr = 0 #scroll
         self.cls()
@@ -204,7 +204,7 @@ class Lcd():
     def cls (self):
         self.ct.callback(None)
         self.chp = 0
-        self.row = 0
+        self.row = 1
         self.col = 0
         self.scr = 0
         self.hwcsa()
@@ -263,7 +263,7 @@ class Lcd():
     def printat (self, r, c, s, sf = False):
         #print at
         olcc, olscr, olr, olc = self.chp, self.scr, self.row, self.col #retain old values
-        self.loc(r,c)
+        self.loc(0 if r < 0 else r,c)
         self.print (s, sf, e=False)
         self.chp, self.scr, self.row, self.col = olcc, olscr, olr, olc #restore old values
         self.upd()
@@ -296,6 +296,16 @@ class Lcd():
             self.chp -= 3
         self.upd()
         #print ("resolve at end: -- col is ", self.col, "row is ", self.row)
+
+    def prmpt (self):
+        #draw prompt
+        self.printat(self.row - 7, 0, "0123456789", sf=True)
+        #for e in [0x81, 0x5a, 0xa5, 0x5a, 0x24, 0x18]: # >>
+        #for e in [0x99, 0x5a, 0xbd, 0x5a, 0x3c, 0x18]: # another >>
+        for e in [0x14, 0x3e, 0x14, 0x3e, 0x14]: # another '#'
+            self.px(e)
+        self.loc(self.row, 1)
+
 
     def print (self, s, sf = False, e=False):
         #sf: superscript font of width 4
