@@ -1,4 +1,6 @@
 from pyb import Pin, Timer, udelay
+import machine
+import stm
 __cbm__ = 0xff #cursor bitmap
 
 class Lcd():
@@ -73,7 +75,8 @@ class Lcd():
         0x41, 0x41, 0x7F, 0x00, 0x00, # ]
         0x04, 0x02, 0x01, 0x02, 0x04, # ^
         0x40, 0x40, 0x40, 0x40, 0x40, # _
-        0x00, 0x01, 0x02, 0x04, 0x00, # `
+        #0x00, 0x01, 0x02, 0x04, 0x00, # `
+        0xff, 0x7e, 0x3c, 0x18, 0x0, # ` mapped to a prompt
         0x20, 0x54, 0x54, 0x54, 0x78, # a
         0x7F, 0x48, 0x44, 0x44, 0x38, # b
         0x38, 0x44, 0x44, 0x44, 0x20, # c
@@ -109,13 +112,13 @@ class Lcd():
     def __init__ (self):
         self.e.high()
         self.rs.high()
-        self.en(1)
         self.chp = 0
-        self.row = 1
+        self.row = 0
         self.col = 0
         self.scr = 0 #scroll
         self.cls()
         self.ct.callback(self.crs)
+        self.en(1)
 
     def hwcs(self, chp):
         #chip select
@@ -129,59 +132,36 @@ class Lcd():
             self.cs[i].low()
     
     def en (self, on):
+        self.hwcsa()        
         self.rs.low()
         self.e.high()
-        self.d[7].low()
-        self.d[6].low()
-        for i in range(1, 6):
-            self.d[i].high()
-        self.d[0].value(on)
-        udelay(1)
+        machine.mem16[stm.GPIOE + stm.GPIO_ODR] = ((0x3e | (on & 0x1)) << 8) | (machine.mem16[stm.GPIOE + stm.GPIO_ODR] & 0xff)
+        #udelay(1)
         self.e.low()
-    
+        self.hwcs(self.chp)
+
     def hwy (self, l):
         self.rs.low()
         self.e.high()
-        self.d[7].high()
-        self.d[6].low()
-        self.d[5].high()
-        self.d[4].high()
-        self.d[3].high()
-        self.d[2].value((l & 0x4) >> 2)
-        self.d[1].value((l & 0x2) >> 1)
-        self.d[0].value(l & 0x1)
+        machine.mem16[stm.GPIOE + stm.GPIO_ODR] = ((0xb8 | (l & 0x7)) << 8) | (machine.mem16[stm.GPIOE + stm.GPIO_ODR] & 0xff)
     
-        udelay(1)
+        #udelay(1)
         self.e.low()
 
     def hwx (self, c):
         self.rs.low()
         self.e.high()
-        self.d[7].low()
-        self.d[6].high()
-        self.d[5].value((c & 0x32) >> 5)
-        self.d[4].value((c & 0x16) >> 4)
-        self.d[3].value((c & 0x8) >> 3)
-        self.d[2].value((c & 0x4) >> 2)
-        self.d[1].value((c & 0x2) >> 1)
-        self.d[0].value(c & 0x1)
+        machine.mem16[stm.GPIOE + stm.GPIO_ODR] = ((0x40 | c) << 8) | (machine.mem16[stm.GPIOE + stm.GPIO_ODR] & 0xff)
     
-        udelay(1)
+        #udelay(1)
         self.e.low()
 
     def hwz (self, z):
         self.rs.low()
         self.e.high()
-        self.d[7].high()
-        self.d[6].high()
-        self.d[5].value((z & 0x32) >> 5)
-        self.d[4].value((z & 0x16) >> 4)
-        self.d[3].value((z & 0x8) >> 3)
-        self.d[2].value((z & 0x4) >> 2)
-        self.d[1].value((z & 0x2) >> 1)
-        self.d[0].value(z & 0x1)
+        machine.mem16[stm.GPIOE + stm.GPIO_ODR] = ((0xc0 | z) << 8) | (machine.mem16[stm.GPIOE + stm.GPIO_ODR] & 0xff)
     
-        udelay(1)
+        #udelay(1)
         self.e.low()
 
     def px (self, value):
@@ -190,9 +170,8 @@ class Lcd():
         #increment of self.col should be handled by caller
         self.rs.high()
         self.e.high()
-        for i in range(8):
-            self.d[i].value((value >> i) & 0x1)
-        udelay(1)
+        machine.mem16[stm.GPIOE + stm.GPIO_ODR] = (value << 8) | (machine.mem16[stm.GPIOE + stm.GPIO_ODR] & 0xff)
+        #udelay(1)
         self.e.low()
 
     def dl (self, l):
@@ -204,7 +183,7 @@ class Lcd():
     def cls (self):
         self.ct.callback(None)
         self.chp = 0
-        self.row = 1
+        self.row = 0
         self.col = 0
         self.scr = 0
         self.hwcsa()
@@ -224,7 +203,7 @@ class Lcd():
         self.upd()
         self.ct.callback(self.crs)
 
-    def loc (self, r, c):
+    def loc (self, r, c=0):
         #locate function
         if c > 31:
             return
@@ -239,12 +218,8 @@ class Lcd():
         else: # -- ok
             self.col = c*6
             self.chp = 0
-        if r >= 0:
-            self.row = r
-        else:
-            self.row = 0
-        if self.row < 8:
-            self.scr -= 8
+
+        self.row = r + (self.scr//8)
         self.upd()
         self.ct.callback(self.crs)
 
@@ -263,7 +238,7 @@ class Lcd():
     def printat (self, r, c, s, sf = False):
         #print at
         olcc, olscr, olr, olc = self.chp, self.scr, self.row, self.col #retain old values
-        self.loc(0 if r < 0 else r,c)
+        self.loc(0 if r < 0 else r, c)
         self.print (s, sf, e=False)
         self.chp, self.scr, self.row, self.col = olcc, olscr, olr, olc #restore old values
         self.upd()
@@ -299,12 +274,8 @@ class Lcd():
 
     def prmpt (self):
         #draw prompt
-        self.printat(self.row - 7, 0, "0123456789", sf=True)
-        #for e in [0x81, 0x5a, 0xa5, 0x5a, 0x24, 0x18]: # >>
-        #for e in [0x99, 0x5a, 0xbd, 0x5a, 0x3c, 0x18]: # another >>
-        for e in [0x14, 0x3e, 0x14, 0x3e, 0x14]: # another '#'
-            self.px(e)
-        self.loc(self.row, 1)
+        self.printat(0, 0, "0123456789", sf=True)
+        self.print('`')
 
 
     def print (self, s, sf = False, e=False):
@@ -329,6 +300,8 @@ class Lcd():
                 elif (ord(c) <= ord ('~')) and (ord(c) >= ord('[')):
                     idx = (ord(c) - self.o[1]) * 5
                     self.px (self.f1[idx + i])
+                else:
+                    self.px (0)
                 self.col += 1
             #print ("col is ", self.col)
 
