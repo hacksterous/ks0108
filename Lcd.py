@@ -133,32 +133,32 @@ class Lcd():
     
     def en (self, on):
         self.hwcsa()        
-        self.rs.low()
         self.e.high()
+        self.rs.low()
         machine.mem16[stm.GPIOE + stm.GPIO_ODR] = ((0x3e | (on & 0x1)) << 8) | (machine.mem16[stm.GPIOE + stm.GPIO_ODR] & 0xff)
         #udelay(1)
         self.e.low()
         self.hwcs(self.chp)
 
     def hwy (self, l):
-        self.rs.low()
         self.e.high()
+        self.rs.low()
         machine.mem16[stm.GPIOE + stm.GPIO_ODR] = ((0xb8 | (l & 0x7)) << 8) | (machine.mem16[stm.GPIOE + stm.GPIO_ODR] & 0xff)
     
         #udelay(1)
         self.e.low()
 
     def hwx (self, c):
-        self.rs.low()
         self.e.high()
+        self.rs.low()
         machine.mem16[stm.GPIOE + stm.GPIO_ODR] = ((0x40 | c) << 8) | (machine.mem16[stm.GPIOE + stm.GPIO_ODR] & 0xff)
     
         #udelay(1)
         self.e.low()
 
     def hwz (self, z):
-        self.rs.low()
         self.e.high()
+        self.rs.low()
         machine.mem16[stm.GPIOE + stm.GPIO_ODR] = ((0xc0 | z) << 8) | (machine.mem16[stm.GPIOE + stm.GPIO_ODR] & 0xff)
     
         #udelay(1)
@@ -168,8 +168,8 @@ class Lcd():
         #show pixels
         #HW will increment the internal X position and 
         #increment of self.col should be handled by caller
-        self.rs.high()
         self.e.high()
+        self.rs.high()
         machine.mem16[stm.GPIOE + stm.GPIO_ODR] = (value << 8) | (machine.mem16[stm.GPIOE + stm.GPIO_ODR] & 0xff)
         #udelay(1)
         self.e.low()
@@ -286,11 +286,11 @@ class Lcd():
         for c in s:
             if self.col > 58 and self.chp == 2:
                 self.ypos()
-            self.xpos (self.col)
+            self.xpos (self.col) ### FIXME -- can be removed?
             self.px(0) #draw gap 
             self.col += 1
             for i in range (w):
-                self.xpos (self.col)
+                self.xpos (self.col) ### FIXME -- can be removed?
                 if sf == True:
                     idx = (ord(c) - self.o[2]) * 4
                     self.px (self.fs[idx + i])
