@@ -20,6 +20,7 @@ class Lcd():
     
     rs = Pin ('PE7', mode=Pin.OUT)
     e = Pin ('PD1', mode=Pin.OUT)
+    rw = Pin ('PD14', mode=Pin.OUT)
     ct = Timer (2, freq=3) #cursor timer
 
     #superscript font for numbers
@@ -110,6 +111,7 @@ class Lcd():
         ]
 
     def __init__ (self):
+        self.rw.low()
         self.e.high()
         self.rs.high()
         self.chp = 0
@@ -120,6 +122,8 @@ class Lcd():
         self.ct.callback(self.crs)
         self.en(1)
 
+    #FIXME use direct writes to machine.mem16[stm.GPIOE + stm.GPIO_BSRR] 
+    #to set/clr E/CS/RS
     def hwcs(self, chp):
         #chip select
         for i in range(3):
@@ -277,7 +281,6 @@ class Lcd():
         self.printat(0, 0, "0123456789", sf=True)
         self.print('`')
 
-
     def print (self, s, sf = False, e=False):
         #sf: superscript font of width 4
         #e: carriage return and newline at end
@@ -294,10 +297,10 @@ class Lcd():
                 if sf == True:
                     idx = (ord(c) - self.o[2]) * 4
                     self.px (self.fs[idx + i])
-                elif ord(c) < ord ('?') and ord(c) > 31:
+                elif ord(c) < 63 and ord(c) > 31: #63 == '?'
                     idx = (ord(c) - self.o[0]) * 5
                     self.px (self.f0[idx + i])
-                elif (ord(c) <= ord ('~')) and (ord(c) >= ord('[')):
+                elif ord(c) <= 126 and ord(c) >= 91: #126 == '~', 91 == ~['
                     idx = (ord(c) - self.o[1]) * 5
                     self.px (self.f1[idx + i])
                 else:
