@@ -24,16 +24,48 @@ class Lcd():
     ct = Timer (2, freq=3) #cursor timer
 
     #superscript font for numbers
-    fs = [0x1f,  0x11, 0x11, 0x1f,    # 0
-          0x0,  0x1,  0x1f, 0x0,    # 1
-          0x1d, 0x15, 0x15, 0x17,   # 2
-          0x15, 0x15, 0x15, 0x1f,   # 3
-          0x7,  0x4,  0x4,  0x1f,   # 4
-          0x17, 0x15, 0x15, 0x1d,   # 5
-          0x1f, 0x15, 0x15, 0x1d,   # 6
-          0x1,  0x1,  0x1,  0x1f,   # 7
-          0x1f, 0x15, 0x15, 0x1f,   # 8
-          0x17, 0x15, 0x15, 0x1f,   # 9
+    fs0 = [0x1f,  0x11, 0x11, 0x1f, # 0
+          0x0,  0x1,  0x1f, 0x0,  # 1
+          0x1d, 0x15, 0x15, 0x17, # 2
+          0x15, 0x15, 0x15, 0x1f, # 3
+          0x7,  0x4,  0x4,  0x1f, # 4
+          0x17, 0x15, 0x15, 0x1d, # 5
+          0x1f, 0x15, 0x15, 0x1d, # 6
+          0x1,  0x1,  0x1,  0x1f, # 7
+          0x1f, 0x15, 0x15, 0x1f, # 8
+          0x17, 0x15, 0x15, 0x1f,  # 9
+          0x08, 0x08, 0x08, 0x08, #- #:
+
+        ]
+
+    #superscript font for alpha
+    fs1 = [0x1f, 0x5, 0x5, 0x1f, #a
+        0x1f, 0x14, 0x14, 0x1c, #b
+        0x1f, 0x11, 0x11, 0x11, #c
+        0x1c, 0x14, 0x14, 0x1f, #d
+        0x1f, 0x15, 0x15, 0x11, #e
+        0x1f, 0x5, 0x5, 0x1, #f
+        0x1f, 0x11, 0x15, 0x1d, #g
+        0x1f, 0x4, 0x4, 0x1f, #h
+        0x11, 0x1f, 0x11, 0x0, #i
+        0x18, 0x11, 0x1f, 0x1, #j
+        0x1f, 0x4, 0xa, 0x11, #k
+        0x1f, 0x10, 0x10, 0x0, #l
+        0x1f, 0x6, 0x3, 0x1f, #m
+        0x1e, 0x2, 0x2, 0x1c, #n
+        0xe, 0x11, 0x11, 0xe, #o
+        0x1f, 0x5, 0x5, 0x2, #p
+        0x1f, 0x11, 0x1f, 0x10, #q
+        0x1e, 0x2, 0x2, 0x0, #r
+        0x17, 0x15, 0x15, 0x1d, #s
+        0x2, 0x1f, 0x12, 0x10, #t
+        0x1f, 0x10, 0x10, 0x1f, #u
+        0x7, 0x18, 0x10, 0x1f, #v
+        0x1f, 0xc, 0x18, 0x1f, #w
+        #0x0, 0xa, 0x4, 0xa, #x
+        0x0, 0x0, 0x0, 0x0, #space #x
+        0x7, 0x14, 0x14, 0x1f, #y
+        0x19, 0x1d, 0x17, 0x13 #z
         ]
 
     f0 = [0x00, 0x00, 0x00, 0x00, 0x00, # space
@@ -66,17 +98,16 @@ class Lcd():
         0x00, 0x56, 0x36, 0x00, 0x00, # ;
         0x00, 0x08, 0x14, 0x22, 0x41, # <
         0x14, 0x14, 0x14, 0x14, 0x14, # =
-        0x41, 0x22, 0x14, 0x08, 0x00, # >
+        0x41, 0x22, 0x14, 0x08, 0x00 # >
         ]
     
-    o = [32, 91, 48] #offset
+    o = [32, 91, 48, 65] #offset
     
     f1 = [0x00, 0x00, 0x7F, 0x41, 0x41, # [
         0x02, 0x04, 0x08, 0x10, 0x20, # \
         0x41, 0x41, 0x7F, 0x00, 0x00, # ]
         0x04, 0x02, 0x01, 0x02, 0x04, # ^
         0x40, 0x40, 0x40, 0x40, 0x40, # _
-        #0x00, 0x01, 0x02, 0x04, 0x00, # `
         0xff, 0x7e, 0x3c, 0x18, 0x0, # ` mapped to a prompt
         0x20, 0x54, 0x54, 0x54, 0x78, # a
         0x7F, 0x48, 0x44, 0x44, 0x38, # b
@@ -107,7 +138,7 @@ class Lcd():
         0x00, 0x08, 0x36, 0x41, 0x00, # {
         0x00, 0x00, 0x7F, 0x00, 0x00, # |
         0x00, 0x41, 0x36, 0x08, 0x00, # }
-        0x18, 0x08, 0x18, 0x10, 0x18, # ~
+        0x18, 0x08, 0x18, 0x10, 0x18 # ~
         ]
 
     def __init__ (self):
@@ -115,7 +146,7 @@ class Lcd():
         self.e.high()
         self.rs.high()
         self.chp = 0
-        self.row = 0
+        self.row = 1
         self.col = 0
         self.scr = 0 #scroll
         self.cls()
@@ -187,7 +218,7 @@ class Lcd():
     def cls (self):
         self.ct.callback(None)
         self.chp = 0
-        self.row = 0
+        self.row = 1
         self.col = 0
         self.scr = 0
         self.hwcsa()
@@ -196,7 +227,7 @@ class Lcd():
             self.hwy(i)
             for j in range(64):
                 self.px(0)
-        self.upd()
+        self.hwupd()
         self.ct.callback(self.crs)
 
     def cll (self, l):
@@ -204,12 +235,43 @@ class Lcd():
         self.ct.callback(None)
         self.px(0) #erase cursor
         self.dl(l)
-        self.upd()
+        self.hwupd()
         self.ct.callback(self.crs)
+
+	def rloc (self, r, c=0):
+		#relative loc
+		#r > 0 goes to next rows, r < 0 goes to previous rows
+		#c > 0 goes to next cols, c < 0 goes to previous cols
+		#self.loc (self.row - self.scr//8+r)
+		col = (self.chp * 64 + self.col)//6 + c
+        if col > 31:
+            return
+		if col < 0:
+			row = r - 1
+			col = 31
+		else:
+			row = r
+        self.ct.callback(None)
+        self.px(0) #erase cursor
+        if col > 21:
+            self.col = col*6 - 128
+            self.chp = 2
+        elif col > 10:
+            self.col = col*6 - 64 
+            self.chp = 1
+        else: # -- ok
+            self.col = col*6
+            self.chp = 0
+
+        self.row += row
+        self.hwupd()
+        self.ct.callback(self.crs)
+
 
     def loc (self, r, c=0):
         #locate function
-        if c > 31:
+		#top row is always 0, bottom row is 7
+        if c > 31 or c < 0:
             return
         self.ct.callback(None)
         self.px(0) #erase cursor
@@ -224,18 +286,18 @@ class Lcd():
             self.chp = 0
 
         self.row = r + (self.scr//8)
-        self.upd()
+        self.hwupd()
         self.ct.callback(self.crs)
 
-    def upds (self):
+    def hwupds (self):
         #update scroll
         self.hwcsa ()
         self.hwz(self.scr)
         self.hwcs (self.chp)
 
-    def upd(self):
+    def hwupd(self):
         #update
-        self.upds()
+        self.hwupds()
         self.hwy (self.row)
         self.hwx (self.col)
 
@@ -245,7 +307,7 @@ class Lcd():
         self.loc(0 if r < 0 else r, c)
         self.print (s, sf, e=False)
         self.chp, self.scr, self.row, self.col = olcc, olscr, olr, olc #restore old values
-        self.upd()
+        self.hwupd()
 
     def crs (self, ct):
         global __cbm__
@@ -264,7 +326,7 @@ class Lcd():
             #FORMULA:
             #self.scr = (self.row - 7) * 8
             self.scr += 8
-            self.upds()
+            self.hwupds()
 
     def xpos (self, c):
         #print ("resolve at first: -- col is ", self.col, "row is ", self.row)
@@ -273,7 +335,7 @@ class Lcd():
         self.chp += (c // 64)
         if self.chp > 2:
             self.chp -= 3
-        self.upd()
+        self.hwupd()
         #print ("resolve at end: -- col is ", self.col, "row is ", self.row)
 
     def prmpt (self):
@@ -293,10 +355,14 @@ class Lcd():
             self.px(0) #draw gap 
             self.col += 1
             for i in range (w):
-                self.xpos (self.col) ### FIXME -- can be removed?
+                self.xpos (self.col)
                 if sf == True:
-                    idx = (ord(c) - self.o[2]) * 4
-                    self.px (self.fs[idx + i])
+                    if ord(c) < 65: #numbers < 65 == 'A'
+                        idx = (ord(c) - self.o[2]) * 4
+                        self.px (self.fs0[idx + i])
+                    else: #alpha
+                        idx = (ord(c) - self.o[3]) * 4
+                        self.px (self.fs1[idx + i])
                 elif ord(c) < 63 and ord(c) > 31: #63 == '?'
                     idx = (ord(c) - self.o[0]) * 5
                     self.px (self.f0[idx + i])
